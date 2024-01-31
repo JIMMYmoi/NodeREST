@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gawston/NodeREST.git"
+    "url": "git+https://github.com/JIMMYmoi/NodeREST.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/gawston/NodeREST/issues"
+    "url": "https://github.com/JIMMYmoi/NodeREST/issues"
   },
-  "homepage": "https://github.com/gawston/NodeREST#readme",
+  "homepage": "https://github.com/JIMMYmoi/NodeREST#readme",
   "devDependencies": {
     "nodemon": "^3.0.2",
     "prettier": "^3.1.1"
