@@ -1,89 +1,94 @@
-// SQLite3 CRUD Operations
-// nom install sqlite3
-// Create a Bood.sqlite file in Database folder
-// Run this file with node CRUDBookSQLite.js
+// Description: REST API with MongoDB
+// npm inatall express mongoose body-parser
+// Run this file with node MongoDBCRUD.js
 // Test with Postman
 
-const express = require('express');
-const sqlite3 = require('sqlite3');
+const express = require("express");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+
+// Database connection
+mongoose.connect("mongodb://admin:KGRqch16035@node57013-jimmy-noderest.proen.app.ruk-com.cloud", {
+    useNewUrlParser: true, 
+    useUnifiedTopology: true 
+});
+
+const Book = mongoose.model("Book", {
+    id: {
+        type: String,
+        required: true
+    },
+    title: String,
+    author: String,    
+});
+
 const app = express();
+app.use(bodyParser.json());
 
-// connect to db
-const db = new sqlite3.Database('./Database/Books.sqlite');
+// Create
+app.post("/books", async (req, res) => {
+    try {
+        // Get the last book record to deletermine the next ID
+        const lastBook = await Book.findOne().sort({ id: -1 });
+        const nextId = lastBook ? lastBook.id + 1 : 1;
 
-// parse incoming requests
-app.use(express.json());
+        // Create a new book with the next ID
+        const book = new Book({
+            id: nextId,     // Set the custom "id" field
+            ...req.body,  // Include other book data from the request body
+        });
 
-// create books table if doesn't exist
-db.run(`CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY,
-    title TEXT,
-    author TEXT
-)`);
-
-// route to get all books
-app.get('/books', (req, res) => {
-    db.all('SELECT * FROM books', (err, rows) => {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            res.json(rows);
-        }
-    });
+        await book.save();
+        res.send(book);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
-// route to get a book by id
-app.get('/books/:id', (req, res) => {
-    db.get('SELECT * FROM books WHERE id = ?', req.params.id, (err, row) => {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            if(!row) {
-                res.status(404).send('Book not found');
-            } else {
-                res.json(row);
-            }
-        }
-    });
+// Read all
+app.get("/books", async (req, res) => {
+    try {
+        const books = await Book.find();
+        res.send(books);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
-// route to create a new book
-app.post('/books', (req, res) => {
-    const book = req.body;
-    db.run('INSERT INTO books (id, title, author) VALUES (?, ?, ?)', book.id, book.title, book.author, function(err) {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            if(book.id == null) {
-                book.id = this.lastID;
-            }
-            res.send(book);
-        }
-    });
+// Read one
+app.get("/books/:id", async (req, res) => {
+    try {
+        const book = await Book.findOne({ id: req.params.id });
+        res.send(book);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
-// route to update a book
-app.put('/books/:id', (req, res) => {
-    const book = req.body;
-    db.run('UPDATE books SET title = ?, author = ? WHERE id = ?', book.title, book.author, req.params.id, function(err) {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            res.send(book);
-        }
-    });
+// Update
+app.put("/books/:id", async (req, res) => {
+    try {
+        const book = await Book.findOneAndUpdate({ id: req.params.id }, req.body, { 
+            new: true,
+        });
+        res.send(book);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
-// route to delete a book
-app.delete('/books/:id', (req, res) => {
-    db.run('DELETE FROM books WHERE id = ?', req.params.id, function(err) {
-        if(err) {
-            res.status(500).send(err);
-        } else {
-            res.send({});
-        }
-    });
+// Delete
+app.delete("/books/:id", async (req, res) => {
+    try {
+        const book = await Book.findOneAndDelete({ id: req.params.id });
+        res.send(book);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
+// Start the server
 const port = process.env.PORT || 3000;
-app.listen(port, () =>  console.log(`Listening at http://localhost:${port}`));
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});

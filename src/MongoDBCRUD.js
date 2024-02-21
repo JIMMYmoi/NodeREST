@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 // Database connection
-mongoose.connect(" ", {
+mongoose.connect("", {
     useNewUrlParser: true, 
     useUnifiedTopology: true 
 });
